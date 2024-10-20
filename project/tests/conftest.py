@@ -4,6 +4,10 @@ from ray import serve
 
 from src.server import APIIngress, SimpleModel
 
+# Enfored order because ray serve cluser is created and deplayed
+# first in ray_serve() and will keep running until end of test case
+# Then all other deployments and that is yielded
+# Then predict_url() depends on the above
 
 @pytest.fixture(scope="session")
 def ray_serve():

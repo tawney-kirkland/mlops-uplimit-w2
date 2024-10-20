@@ -23,6 +23,7 @@ class Model:
         )
 
     @classmethod
+    # Using onnx to produce inference results
     def predict(
         cls, session: rt.InferenceSession, review: str
     ) -> dict[
