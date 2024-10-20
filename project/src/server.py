@@ -5,6 +5,7 @@ from ray.serve.handle import DeploymentHandle
 from src.data_models import SimpleModelRequest, SimpleModelResponse, SimpleModelResults
 from src.model import Model
 
+# Wrap FastAPI server around our ingress
 app = FastAPI(
     title="Drug Review Sentiment Analysis",
     description="Drug Review Sentiment Classifier",
@@ -26,12 +27,13 @@ class APIIngress:
 
     @app.post("/predict")
     async def predict(self, request: SimpleModelRequest):
-        # TODO: Use the handle.predict which is a remote function
-        # to get the result
+        result = await self.handle.predict.remote(request.review)
         return SimpleModelResponse.model_validate(result.model_dump())
 
 
 @serve.deployment(
+    # Run twice in 2 reactors, which gives concurrency. Each
+    # one has 1 CPU
     ray_actor_options={"num_cpus": 0.2},
     autoscaling_config={"min_replicas": 1, "max_replicas": 2},
 )
@@ -40,7 +42,7 @@ class SimpleModel:
         self.session = Model.load_model()
 
     def predict(self, review: str) -> SimpleModelResults:
-        # TODO: Use the Model.predict to get the result
+        result = Model.predict(self.session, review=review)
         return SimpleModelResults.model_validate(result)
 
 
